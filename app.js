@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
@@ -16,6 +17,13 @@ const nodemailer = require("nodemailer");
 const app = express();
 const port = process.env.PORT || 3000;
 const uploadDir = path.join(__dirname, "uploads");
+
+// التأكد من وجود مجلد التحميلات
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log(`✅ Created uploads directory at ${uploadDir}`);
+}
+
 const httpServer = http.createServer(app);
 
 // Basic middleware setup
