@@ -51,7 +51,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: "mongodb://localhost:27017/DecorAndMore",
+      mongoUrl:  process.env.MONGO_URI,
       collectionName: "sessions",
       ttl: 60 * 60, // 1 hour in seconds
       autoRemove: "native",
