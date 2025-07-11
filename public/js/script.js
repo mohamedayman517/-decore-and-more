@@ -4,55 +4,65 @@
  */
 
 // Load main.js functionality if it exists
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Basic console message
-  console.log('Script.js loaded - redirecting to main functionality');
-  
-  // Try to load main.js functionality
-  const script = document.createElement('script');
-  script.src = '/js/main.js';
-  script.async = true;
-  document.head.appendChild(script);
+  console.log("Script.js loaded - checking if main.js already loaded");
+
+  // Only load main.js if it's not already loaded
+  if (!window.mainJsLoaded) {
+    const script = document.createElement("script");
+    script.src = "/js/main.js";
+    script.async = true;
+    script.onload = () => {
+      window.mainJsLoaded = true;
+      console.log("Main.js loaded dynamically by script.js");
+    };
+    document.head.appendChild(script);
+  } else {
+    console.log("Main.js already loaded, skipping dynamic load");
+  }
 }
 
 // Basic utility functions that might be expected
 window.utils = window.utils || {};
 
 // Basic smooth scroll function
-window.utils.smoothScroll = function(target) {
+window.utils.smoothScroll = function (target) {
   if (target) {
     target.scrollIntoView({
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   }
 };
 
 // Basic form validation helper
-window.utils.validateForm = function(form) {
+window.utils.validateForm = function (form) {
   if (!form) return false;
-  
-  const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+
+  const inputs = form.querySelectorAll(
+    "input[required], select[required], textarea[required]"
+  );
   let isValid = true;
-  
-  inputs.forEach(input => {
+
+  inputs.forEach((input) => {
     if (!input.value.trim()) {
       isValid = false;
-      input.classList.add('is-invalid');
+      input.classList.add("is-invalid");
     } else {
-      input.classList.remove('is-invalid');
+      input.classList.remove("is-invalid");
     }
   });
-  
+
   return isValid;
 };
 
 // Basic alert function
-window.utils.showAlert = function(message, type = 'info') {
-  if (typeof Swal !== 'undefined') {
+window.utils.showAlert = function (message, type = "info") {
+  if (typeof Swal !== "undefined") {
     Swal.fire({
       text: message,
       icon: type,
-      confirmButtonText: 'OK'
+      confirmButtonText: "OK",
     });
   } else {
     alert(message);
@@ -60,26 +70,26 @@ window.utils.showAlert = function(message, type = 'info') {
 };
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('Script.js DOM ready');
-  
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("Script.js DOM ready");
+
   // Add smooth scrolling to anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
       e.preventDefault();
-      const target = document.querySelector(this.getAttribute('href'));
+      const target = document.querySelector(this.getAttribute("href"));
       if (target) {
         window.utils.smoothScroll(target);
       }
     });
   });
-  
+
   // Add basic form validation
-  document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function(e) {
+  document.querySelectorAll("form").forEach((form) => {
+    form.addEventListener("submit", function (e) {
       if (!window.utils.validateForm(this)) {
         e.preventDefault();
-        window.utils.showAlert('Please fill in all required fields', 'warning');
+        window.utils.showAlert("Please fill in all required fields", "warning");
       }
     });
   });

@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           // For main login form or if no booking info in modal, use the default redirect path
           window.location.href = data.redirectPath || "/";
-        }, 1500);
+        }, 500); // Reduced delay for faster redirect
       } else {
         if (response.status === 403) {
           showNotification(

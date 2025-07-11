@@ -1,3 +1,10 @@
+// Prevent duplicate loading
+if (window.mainJsLoaded) {
+  console.log("Main.js already loaded, skipping...");
+  return;
+}
+window.mainJsLoaded = true;
+
 // Initialize sidebar
 const sidebarId = document.getElementById("sidebar");
 
