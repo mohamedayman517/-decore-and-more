@@ -299,6 +299,44 @@ app.get("/verify", (req, res) => {
   });
 });
 
+// مسار للبحث عن حالة الطلب من خلال نموذج البحث
+app.get("/order-status", async (req, res) => {
+  try {
+    const { orderId } = req.query;
+    
+    if (!orderId) {
+      return res.redirect('/');
+    }
+    
+    // هنا يمكن إضافة منطق للتحقق من حالة الطلب من قاعدة البيانات
+    // مثال: const order = await Order.findById(orderId);
+    
+    // للتجربة، سنقوم بتوجيه المستخدم إلى صفحة تفاصيل الطلب
+    res.redirect(`/order-status/${orderId}`);
+  } catch (error) {
+    console.error("Error in order status search:", error);
+    res.status(500).send("حدث خطأ في الخادم");
+  }
+});
+
+// إضافة مسار جديد للاستعلام عن حالة الطلبات
+app.get("/order-status/:orderId", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    // هنا يمكن إضافة منطق للتحقق من حالة الطلب من قاعدة البيانات
+    // مثال: const order = await Order.findById(orderId);
+    
+    res.render("order-status", {
+      user: req.session.user,
+      orderId,
+      // order: order // يمكن تمرير بيانات الطلب للصفحة
+    });
+  } catch (error) {
+    console.error("Error in order status route:", error);
+    res.status(500).send("حدث خطأ في الخادم");
+  }
+});
+
 // Database connection and server start
 mongoose
   .connect(process.env.MONGO_URI)

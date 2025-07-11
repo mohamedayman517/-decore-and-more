@@ -347,6 +347,33 @@
       </div>
     </section>
 
+    <!-- Order Status Section -->
+    <section class="order-status-section py-5 bg-light">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0">
+              <div class="card-body p-4">
+                <h2 class="text-center mb-4 section-gradient-title">تتبع حالة طلبك</h2>
+                <p class="text-center mb-4">أدخل رقم الطلب الخاص بك لمعرفة حالته الحالية</p>
+                <form action="/order-status" method="GET" class="d-flex flex-column gap-3">
+                  <div class="form-group">
+                    <div class="input-group">
+                      <span class="input-group-text bg-warning text-dark">
+                        <i class="fas fa-search"></i>
+                      </span>
+                      <input type="text" name="orderId" class="form-control" placeholder="أدخل رقم الطلب" required>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-warning w-100 py-2 fw-bold">البحث عن الطلب</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- start section three  -->
 
     <style>

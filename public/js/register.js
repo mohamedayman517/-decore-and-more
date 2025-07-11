@@ -60,17 +60,23 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       const idCardPhoto =
         idCardPhotoInput.files.length > 0 ? idCardPhotoInput.files[0] : null;
-      
+
       // التحقق من حجم الملفات (الحد الأقصى 5 ميجابايت)
       const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
-      
+
       if (profilePhoto && profilePhoto.size > MAX_FILE_SIZE) {
-        showMessage("❌ حجم صورة الملف الشخصي يتجاوز الحد المسموح به (5 ميجابايت)", "red");
+        showMessage(
+          "❌ حجم صورة الملف الشخصي يتجاوز الحد المسموح به (5 ميجابايت)",
+          "red"
+        );
         hasError = true;
       }
-      
+
       if (idCardPhoto && idCardPhoto.size > MAX_FILE_SIZE) {
-        showMessage("❌ حجم صورة بطاقة الهوية يتجاوز الحد المسموح به (5 ميجابايت)", "red");
+        showMessage(
+          "❌ حجم صورة بطاقة الهوية يتجاوز الحد المسموح به (5 ميجابايت)",
+          "red"
+        );
         hasError = true;
       }
 
@@ -198,6 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const response = await fetch("/register", {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
 
         if (response.ok) {

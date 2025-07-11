@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const response = await fetch("/registerCustomer", {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
 
         if (response.ok) {
