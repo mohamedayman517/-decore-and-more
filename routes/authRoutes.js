@@ -204,8 +204,10 @@ router.post("/login", async (req, res) => {
     // Create session
     req.session.user = {
       id: user._id,
+      _id: user._id, // إضافة _id أيضاً للتوافق
       email: user.email,
       role: user.role,
+      name: user.firstName ? `${user.firstName} ${user.lastName}` : user.name, // إضافة الاسم
     };
 
     // Set redirectPath based on user role
