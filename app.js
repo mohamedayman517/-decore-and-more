@@ -29,10 +29,12 @@ const httpServer = http.createServer(app);
 // Basic middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -51,7 +53,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl:  process.env.MONGO_URI,
+      mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
       ttl: 60 * 60, // 1 hour in seconds
       autoRemove: "native",
@@ -233,7 +235,7 @@ app.use("/", userProfileRoutes);
 app.use("/", authRoute);
 app.use("/", BookingRoutes);
 app.use("/", ConfirmationRoutes);
-app.use("/", registerCustomerRoutes)
+app.use("/", registerCustomerRoutes);
 
 // Chat route
 app.get("/chat/:userId1?/:userId2?", async (req, res) => {
@@ -281,7 +283,10 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     httpServer.listen(port, () =>
-      console.log(`🚀 Server running on http://localhost:${port}`)
+      console.log(
+        `🚀 Server running on http://localhost:${port}` ||
+          " 🚀 Server running on ${process.env.BASE_URL}"
+      )
     );
   })
   .catch((err) => {
