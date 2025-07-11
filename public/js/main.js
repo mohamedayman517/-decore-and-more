@@ -1,5 +1,5 @@
 // Initialize sidebar
-const sidebarId = document.getElementById('sidebar');
+const sidebarId = document.getElementById("sidebar");
 
 if (sidebarId) {
   if (localStorage.getItem("isSmall") === "yes") {
@@ -20,6 +20,8 @@ if (sidebarId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Main.js loaded and DOM ready");
+
   // Check for menu button and nav links
   const menuBtn = document.querySelector(".menu-btn");
   const navLinks = document.querySelector(".nav-links");
@@ -28,6 +30,15 @@ document.addEventListener("DOMContentLoaded", () => {
       navLinks.classList.toggle("active");
     });
   }
+
+  // Initialize all buttons with click handlers
+  initializeButtons();
+
+  // Initialize forms
+  initializeForms();
+
+  // Initialize navigation
+  initializeNavigation();
 
   // Check for price range elements
   const priceRange = document.getElementById("priceRange");
@@ -78,7 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          showErrorAlert(errorData.message || "An error occurred while submitting feedback.");
+          showErrorAlert(
+            errorData.message || "An error occurred while submitting feedback."
+          );
           return;
         }
 
@@ -141,17 +154,163 @@ if (timerBox) {
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
     e.preventDefault();
-    document.querySelector(this.getAttribute("href")).scrollIntoView({
-      behavior: "smooth",
-    });
+    const target = document.querySelector(this.getAttribute("href"));
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
   });
 });
 
+// Initialize all buttons with proper event handlers
+function initializeButtons() {
+  console.log("Initializing buttons...");
+
+  // Book Now buttons
+  document
+    .querySelectorAll('.book-now-btn, .btn-book, [data-action="book"]')
+    .forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        const packageId =
+          this.dataset.packageId || this.getAttribute("data-package-id");
+        const eventType =
+          this.dataset.eventType || this.getAttribute("data-event-type");
+
+        if (packageId) {
+          window.location.href = `/booking?packageId=${packageId}&eventType=${
+            eventType || ""
+          }`;
+        } else {
+          window.location.href = "/booking";
+        }
+      });
+    });
+
+  // View Profile buttons
+  document
+    .querySelectorAll(
+      '.view-profile-btn, .btn-profile, [data-action="profile"]'
+    )
+    .forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        const engineerId =
+          this.dataset.engineerId || this.getAttribute("data-engineer-id");
+        if (engineerId) {
+          window.location.href = `/profile/${engineerId}`;
+        }
+      });
+    });
+
+  // Contact buttons
+  document
+    .querySelectorAll('.contact-btn, .btn-contact, [data-action="contact"]')
+    .forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        window.location.href = "/contact";
+      });
+    });
+
+  // Login/Register buttons
+  document.querySelectorAll(".login-btn, .btn-login").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      window.location.href = "/login";
+    });
+  });
+
+  document.querySelectorAll(".register-btn, .btn-register").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      window.location.href = "/register";
+    });
+  });
+
+  // Logout buttons
+  document.querySelectorAll(".logout-btn, .btn-logout").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (confirm("Are you sure you want to logout?")) {
+        fetch("/logout", { method: "POST" })
+          .then(() => (window.location.href = "/"))
+          .catch((err) => console.error("Logout error:", err));
+      }
+    });
+  });
+
+  console.log("Buttons initialized successfully");
+}
+
+// Initialize forms with proper validation
+function initializeForms() {
+  console.log("Initializing forms...");
+
+  document.querySelectorAll("form").forEach((form) => {
+    form.addEventListener("submit", function (e) {
+      // Basic form validation
+      const requiredFields = this.querySelectorAll("[required]");
+      let isValid = true;
+
+      requiredFields.forEach((field) => {
+        if (!field.value.trim()) {
+          isValid = false;
+          field.classList.add("is-invalid");
+        } else {
+          field.classList.remove("is-invalid");
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        if (typeof showErrorAlert === "function") {
+          showErrorAlert("Please fill in all required fields");
+        } else {
+          alert("Please fill in all required fields");
+        }
+      }
+    });
+  });
+
+  console.log("Forms initialized successfully");
+}
+
+// Initialize navigation
+function initializeNavigation() {
+  console.log("Initializing navigation...");
+
+  // Handle dropdown menus
+  document.querySelectorAll(".dropdown").forEach((dropdown) => {
+    const toggle = dropdown.querySelector(".dropdown-toggle, .nav-link");
+    const menu = dropdown.querySelector(".dropdown-menu");
+
+    if (toggle && menu) {
+      toggle.addEventListener("click", function (e) {
+        e.preventDefault();
+        menu.classList.toggle("show");
+      });
+    }
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".dropdown")) {
+      document.querySelectorAll(".dropdown-menu.show").forEach((menu) => {
+        menu.classList.remove("show");
+      });
+    }
+  });
+
+  console.log("Navigation initialized successfully");
+}
+
 // Initialize AOS only if it exists
-if (typeof AOS !== 'undefined') {
+if (typeof AOS !== "undefined") {
   AOS.init({
     duration: 1200,
-    once: true
+    once: true,
   });
 }
 

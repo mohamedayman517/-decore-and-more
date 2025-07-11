@@ -85,10 +85,10 @@ app.use(
       autoRemove: "native",
     }),
     cookie: {
-      secure: false, // تعطيل مؤقت لاختبار الكوكيز
+      secure: process.env.NODE_ENV === "production", // آمن في الإنتاج
       sameSite: "Lax", // Lax للتوافق الأفضل
       maxAge: 60 * 60 * 24 * 1000, // 24 hours in milliseconds
-      httpOnly: false, // تعطيل مؤقت للاختبار
+      httpOnly: true, // آمن - منع الوصول من JavaScript
       path: "/", // تحديد المسار بوضوح
       // عدم تحديد domain للسماح للكوكيز بالعمل على جميع النطاقات الفرعية
       domain: undefined,
@@ -128,14 +128,7 @@ app.use((req, res, next) => {
       `🔍 User-Agent: ${req.headers["user-agent"]?.substring(0, 50)}...`
     );
 
-    // فرض إرسال كوكي الجلسة
-    res.cookie("connect.sid", req.sessionID, {
-      maxAge: 60 * 60 * 24 * 1000,
-      httpOnly: false,
-      secure: false,
-      sameSite: "Lax",
-      path: "/",
-    });
+    // تم حل مشكلة الكوكيز - لا حاجة للإرسال اليدوي
   }
 
   next();
