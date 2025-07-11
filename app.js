@@ -72,8 +72,8 @@ app.use(
       autoRemove: "native",
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-       sameSite: "None",
+      secure: process.env.NODE_ENV === "production", // true في بيئة الإنتاج لأن Railway يستخدم HTTPS
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // مهم جدًا للـ cross-site requests
       maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
       httpOnly: true,
     },

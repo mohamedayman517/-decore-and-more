@@ -21,6 +21,7 @@ async function deleteEngineer(engineerId) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include', // مهم لإرسال الكوكيز مع الطلب
       });
 
       if (response.ok) {
@@ -40,7 +41,10 @@ async function deleteEngineer(engineerId) {
 
 function logout() {
   showConfirmAlert("Are you sure you want to logout?", () => {
-    fetch("/logout", { method: "POST" })
+    fetch("/logout", { 
+      method: "POST",
+      credentials: 'include' // مهم لإرسال الكوكيز مع الطلب
+    })
       .then(() => window.location.href = "/login");
   });
 }

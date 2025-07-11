@@ -559,7 +559,9 @@
             // Show loading indicator
             document.getElementById('pendingCount').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            const response = await fetch("/pending-engineers");
+            const response = await fetch("/pending-engineers", {
+              credentials: 'include' // مهم لإرسال الكوكيز مع الطلب
+            });
             const engineers = await response.json();
 
             // Update the pending count in the stats card
@@ -672,6 +674,7 @@
             const response = await fetch("/approve-engineer", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: 'include', // مهم لإرسال الكوكيز مع الطلب
                 body: JSON.stringify({ email })
             });
 
@@ -762,7 +765,10 @@
         try {
             const response = await fetch("/reject-engineer", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include', // مهم لإرسال الكوكيز مع الطلب
                 body: JSON.stringify({ email })
             });
 
@@ -962,7 +968,9 @@
       // Function to fetch client count from server
       async function fetchClientCount() {
         try {
-          const response = await fetch('/admin/client-count');
+          const response = await fetch('/admin/client-count', {
+            credentials: 'include' // مهم لإرسال الكوكيز مع الطلب
+          });
           const data = await response.json();
 
           if (response.ok) {
@@ -985,6 +993,9 @@
         }
       }
     </script>
+    
+    <!-- تحميل ملف AdminDashboard.js -->
+    <script src="/user/AdminDashboard.js"></script>
 
   </body>
 
