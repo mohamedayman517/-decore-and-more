@@ -33,24 +33,34 @@ const allowedOrigins = [
   process.env.NODE_ENV === "development" ? "http://localhost:3000" : null,
   "https://decore-and-more-production.up.railway.app",
   process.env.BASE_URL,
-  // إضافة النطاق الفرعي لـ Railway
-  ".up.railway.app"
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
       // السماح بالطلبات من origins المحددة أو بدون origin (زي Postman أو سيرفر داخلي)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // التحقق من النطاقات المسموحة
+      const isAllowed = allowedOrigins.some((allowedOrigin) => {
+        if (allowedOrigin === origin) return true;
+        // السماح بجميع النطاقات الفرعية لـ Railway
+        if (origin.endsWith(".up.railway.app")) return true;
+        return false;
+      });
+
+      if (isAllowed) {
         callback(null, true);
       } else {
+        console.log(`CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
   })
 );
-
 
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -65,23 +75,22 @@ app.set("views", path.join(__dirname, "views"));
 // Session setup
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "fallback-secret-key-for-development",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
-      ttl: 60 * 60, // 1 hour in seconds
+      ttl: 60 * 60 * 24, // 24 hours in seconds
       autoRemove: "native",
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production", // true في بيئة الإنتاج لأن Railway يستخدم HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // مهم جدًا للـ cross-site requests
-      maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+      sameSite: process.env.NODE_ENV === "production" ? "Lax" : "Lax", // تغيير من None إلى Lax لتجنب مشاكل الكوكيز
+      maxAge: 60 * 60 * 24 * 1000, // 24 hours in milliseconds
       httpOnly: true,
-      // استخدام النطاق من BASE_URL إذا كان موجودًا، وإلا استخدام النطاق الافتراضي لـ Railway
-      domain: process.env.NODE_ENV === "production" ? 
-        (new URL(process.env.BASE_URL || "https://decore-and-more-production.up.railway.app")).hostname : undefined,
+      // عدم تحديد domain للسماح للكوكيز بالعمل على جميع النطاقات الفرعية
+      domain: undefined,
     },
     rolling: true, // Reset expiration on every response
   })
@@ -149,65 +158,68 @@ app.use(
         "https://code.jquery.com",
         "https://cdn.datatables.net",
         "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-        ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
+        ...(process.env.NODE_ENV === "development"
+          ? ["http://localhost:35729"]
+          : []),
       ],
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://fonts.googleapis.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-        ],
-        styleSrcElem: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://fonts.googleapis.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-        ],
-        imgSrc: [
-          "'self'",
-          "data:",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-        ],
-        connectSrc: [
-          "'self'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-          "https://*.up.railway.app",
-          process.env.BASE_URL,
-          ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
-        ],
-        fontSrc: [
-          "'self'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://fonts.gstatic.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-        ],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: [
-          "'self'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-        ],
-      },
-    })
-  );
-
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://fonts.googleapis.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+      ],
+      styleSrcElem: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://fonts.googleapis.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+      ],
+      connectSrc: [
+        "'self'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+        "https://*.up.railway.app",
+        process.env.BASE_URL,
+        ...(process.env.NODE_ENV === "development"
+          ? ["http://localhost:35729"]
+          : []),
+      ],
+      fontSrc: [
+        "'self'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://fonts.gstatic.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+      ],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: [
+        "'self'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+      ],
+    },
+  })
+);
 
 // Live reload setup
 if (process.env.NODE_ENV === "development") {
@@ -299,42 +311,17 @@ app.get("/verify", (req, res) => {
   });
 });
 
-// مسار للبحث عن حالة الطلب من خلال نموذج البحث
-app.get("/order-status", async (req, res) => {
-  try {
-    const { orderId } = req.query;
-    
-    if (!orderId) {
-      return res.redirect('/');
-    }
-    
-    // هنا يمكن إضافة منطق للتحقق من حالة الطلب من قاعدة البيانات
-    // مثال: const order = await Order.findById(orderId);
-    
-    // للتجربة، سنقوم بتوجيه المستخدم إلى صفحة تفاصيل الطلب
-    res.redirect(`/order-status/${orderId}`);
-  } catch (error) {
-    console.error("Error in order status search:", error);
-    res.status(500).send("حدث خطأ في الخادم");
-  }
-});
-
-// إضافة مسار جديد للاستعلام عن حالة الطلبات
-app.get("/order-status/:orderId", async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    // هنا يمكن إضافة منطق للتحقق من حالة الطلب من قاعدة البيانات
-    // مثال: const order = await Order.findById(orderId);
-    
-    res.render("order-status", {
-      user: req.session.user,
-      orderId,
-      // order: order // يمكن تمرير بيانات الطلب للصفحة
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error occurred:", err);
+  if (err.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      error: "CORS Error",
+      message: "Origin not allowed",
+      origin: req.headers.origin,
     });
-  } catch (error) {
-    console.error("Error in order status route:", error);
-    res.status(500).send("حدث خطأ في الخادم");
   }
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 // Database connection and server start
@@ -342,7 +329,16 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     httpServer.listen(port, () => {
-      const baseUrl = process.env.BASE_URL || `https://decore-and-more-production.up.railway.app`;
+      const baseUrl =
+        process.env.BASE_URL ||
+        `https://decore-and-more-production.up.railway.app`;
+      console.log("🔧 Environment Configuration:");
+      console.log(`   NODE_ENV: ${process.env.NODE_ENV}`);
+      console.log(`   BASE_URL: ${process.env.BASE_URL}`);
+      console.log(
+        `   SESSION_SECRET: ${process.env.SESSION_SECRET ? "Set" : "Not Set"}`
+      );
+      console.log(`   MONGO_URI: ${process.env.MONGO_URI ? "Set" : "Not Set"}`);
       console.log(
         process.env.NODE_ENV === "development"
           ? `🚀 Server running on http://localhost:${port}`

@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node app.js",
     "watch": "nodemon --ext js,ejs",
-    "dev": "cross-env NODE_ENV=development nodemon app.js"
+    "dev": "cross-env NODE_ENV=development nodemon app.js",
+    "validate-env": "node scripts/validateEnvironment.js",
+    "railway-deploy": "npm run validate-env && railway up"
   },
   "keywords": [
     "interior design",

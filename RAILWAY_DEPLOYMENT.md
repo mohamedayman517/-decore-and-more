@@ -6,34 +6,41 @@
 
 يجب تكوين المتغيرات البيئية التالية في لوحة تحكم Railway:
 
-### إعدادات البريد الإلكتروني
+### إعدادات البريد الإلكتروني (مطلوبة)
+
 ```
-EMAIL_SERVICE=gmail
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
 EMAIL=your-email@gmail.com
 PASS=your-app-password
 ```
 
+> **ملاحظة**: استخدم App Password من Google، وليس كلمة المرور العادية
+
 ### إعدادات Stripe
+
 ```
 STRIPE_SECRET_KEY=your-stripe-secret-key
 STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
 STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
 ```
 
-### إعدادات الجلسة والبيئة
+### إعدادات الجلسة والبيئة (مطلوبة)
+
 ```
-SESSION_SECRET=your-session-secret
+SESSION_SECRET=your-strong-random-session-secret
 NODE_ENV=production
+PORT=3000
 ```
 
+> **ملاحظة**: استخدم مفتاح جلسة قوي وعشوائي (32 حرف على الأقل)
+
 ### إعدادات قاعدة البيانات
+
 ```
 MONGO_URI=your-mongodb-connection-string
 ```
 
 ### إعدادات URL الأساسي (مهم جداً)
+
 ```
 BASE_URL=https://your-app-name.up.railway.app
 ```
@@ -58,7 +65,7 @@ cookie: {
   sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
   httpOnly: true,
-  domain: process.env.NODE_ENV === "production" ? 
+  domain: process.env.NODE_ENV === "production" ?
     (new URL(process.env.BASE_URL || "https://decore-and-more-production.up.railway.app")).hostname : undefined,
 }
 ```
@@ -72,7 +79,7 @@ const allowedOrigins = [
   process.env.NODE_ENV === "development" ? "http://localhost:3000" : null,
   "https://decore-and-more-production.up.railway.app",
   process.env.BASE_URL,
-  ".up.railway.app"
+  ".up.railway.app",
 ].filter(Boolean);
 ```
 
@@ -104,14 +111,47 @@ connectSrc: [
 
 ## مشاكل شائعة وحلولها
 
+### مشكلة: لا يمكن تسجيل الدخول كأدمن (خطأ 403)
+
+**الأسباب المحتملة**:
+
+1. الجلسة لا تُحفظ بشكل صحيح
+2. إعدادات الكوكيز غير صحيحة
+3. مشكلة في CORS
+
+**الحل**:
+
+1. تأكد من أن `SESSION_SECRET` مضبوط في متغيرات البيئة
+2. تأكد من أن `MONGO_URI` صحيح ويمكن الوصول إليه
+3. تحقق من سجلات Railway للأخطاء
+4. تأكد من أن `NODE_ENV=production`
+
 ### مشكلة: المستخدمون يتم تسجيل خروجهم بشكل متكرر
-**الحل**: تحقق من إعدادات الكوكيز ونطاق الكوكيز.
+
+**الحل**:
+
+- تم تحديث إعدادات الكوكيز لتستخدم `sameSite: "Lax"` بدلاً من `"None"`
+- تم إزالة تحديد `domain` للكوكيز للسماح بالعمل على جميع النطاقات الفرعية
 
 ### مشكلة: روابط التحقق في رسائل البريد الإلكتروني لا تعمل
+
 **الحل**: تأكد من أن `BASE_URL` مضبوط بشكل صحيح وأن جميع الروابط في رسائل البريد الإلكتروني تستخدم `process.env.BASE_URL`.
 
 ### مشكلة: أخطاء CORS
-**الحل**: تأكد من أن إعدادات CORS تتضمن جميع النطاقات المطلوبة.
+
+**الحل**:
+
+- تم تحديث إعدادات CORS لتدعم جميع النطاقات الفرعية لـ Railway (\*.up.railway.app)
+- تحقق من سجلات الخادم لرؤية النطاقات المحجوبة
 
 ### مشكلة: مشاكل في تحميل الموارد (CSS، JavaScript، الصور)
+
 **الحل**: تحقق من إعدادات Content Security Policy (CSP) وتأكد من أنها تسمح بالوصول إلى جميع المصادر المطلوبة.
+
+### مشكلة: خطأ في الاتصال بقاعدة البيانات
+
+**الحل**:
+
+1. تحقق من صحة `MONGO_URI` في متغيرات البيئة
+2. تأكد من أن عنوان IP الخاص بـ Railway مسموح في MongoDB Atlas
+3. تحقق من سجلات Railway للحصول على تفاصيل الخطأ
