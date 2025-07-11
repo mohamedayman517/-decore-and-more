@@ -30,9 +30,10 @@ const httpServer = http.createServer(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://decore-and-more-production.up.railway.app"
-];
+  process.env.NODE_ENV === "development" ? "http://localhost:3000" : null,
+  "https://decore-and-more-production.up.railway.app",
+  process.env.BASE_URL
+].filter(Boolean);
 
 app.use(
   cors({
@@ -76,6 +77,7 @@ app.use(
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // مهم جدًا للـ cross-site requests
       maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
       httpOnly: true,
+      domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined, // تحديد النطاق في بيئة الإنتاج
     },
     rolling: true, // Reset expiration on every response
   })
@@ -144,7 +146,7 @@ if (process.env.NODE_ENV === "development") {
           "https://code.jquery.com",
           "https://cdn.datatables.net",
           "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-          "http://localhost:35729",
+          ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
         ],
         styleSrc: [
           "'self'",
@@ -178,7 +180,7 @@ if (process.env.NODE_ENV === "development") {
           "https://cdnjs.cloudflare.com",
           "https://cdn.datatables.net",
           "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-          "http://localhost:35729",
+          ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
         ],
         fontSrc: [
           "'self'",
@@ -298,8 +300,9 @@ mongoose
   .then(() => {
     httpServer.listen(port, () =>
       console.log(
-        `🚀 Server running on http://localhost:${port}` ||
-          " 🚀 Server running on ${process.env.BASE_URL}"
+        process.env.NODE_ENV === "development"
+          ? `🚀 Server running on http://localhost:${port}`
+          : `🚀 Server running on ${process.env.BASE_URL}`
       )
     );
   })

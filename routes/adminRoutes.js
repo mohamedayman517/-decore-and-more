@@ -111,7 +111,7 @@ router.post("/approve-engineer", async (req, res) => {
     console.log("Engineer found and updated:", engineer.email);
 
     // Create verification link
-    const verificationLink = `http://localhost:3000/verify?engineerId=${engineer._id}`;
+    const verificationLink = `${process.env.BASE_URL}/verify?engineerId=${engineer._id}`;
 
     // Send verification email with link
     const mailOptions = {

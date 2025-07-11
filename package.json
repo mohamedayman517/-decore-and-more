@@ -4,12 +4,14 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "watch": "nodemon --ext js,ejs"
+    "watch": "nodemon --ext js,ejs",
+    "dev": "NODE_ENV=development nodemon app.js",
+    "build": "echo \"No build step required for Node.js application\""
   },
-  "keywords": [],
+  "keywords": ["interior design", "booking", "designers", "decor", "architecture"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "A web application connecting interior designers with clients for booking services and managing projects",
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
