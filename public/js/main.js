@@ -229,17 +229,47 @@ function initializeButtons() {
     });
   });
 
-  // Logout buttons
-  document.querySelectorAll(".logout-btn, .btn-logout").forEach((btn) => {
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      if (confirm("Are you sure you want to logout?")) {
-        fetch("/logout", { method: "POST" })
-          .then(() => (window.location.href = "/"))
-          .catch((err) => console.error("Logout error:", err));
-      }
+  // Logout buttons - handle multiple selectors
+  document
+    .querySelectorAll(
+      ".logout-btn, .btn-logout, [onclick*='logout'], [data-action='logout']"
+    )
+    .forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (confirm("Are you sure you want to logout?")) {
+          fetch("/logout", { method: "POST" })
+            .then(() => (window.location.href = "/"))
+            .catch((err) => console.error("Logout error:", err));
+        }
+      });
     });
-  });
+
+  // Delete buttons - handle admin delete functions
+  document
+    .querySelectorAll(
+      "[onclick*='deleteEngineer'], [onclick*='delete'], .btn-delete, [data-action='delete']"
+    )
+    .forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        const engineerId =
+          this.dataset.engineerId || this.getAttribute("data-engineer-id");
+        const itemId = this.dataset.itemId || this.getAttribute("data-item-id");
+        const deleteType = this.dataset.deleteType || "item";
+
+        if (confirm(`Are you sure you want to delete this ${deleteType}?`)) {
+          if (engineerId) {
+            deleteEngineer(engineerId);
+          } else if (itemId) {
+            deleteItem(itemId, deleteType);
+          } else {
+            console.error("No ID found for delete operation");
+          }
+        }
+      });
+    });
 
   console.log("Buttons initialized successfully");
 }
@@ -305,6 +335,108 @@ function initializeNavigation() {
 
   console.log("Navigation initialized successfully");
 }
+
+// Global functions for admin operations
+window.deleteEngineer = async function (engineerId) {
+  try {
+    console.log("Deleting engineer:", engineerId);
+
+    const response = await fetch(`/AdminDashboard/engineers/${engineerId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      if (typeof showSuccessAlert === "function") {
+        showSuccessAlert("Engineer deleted successfully", () => {
+          location.reload();
+        });
+      } else {
+        alert("Engineer deleted successfully");
+        location.reload();
+      }
+    } else {
+      const error = await response.text();
+      if (typeof showErrorAlert === "function") {
+        showErrorAlert("Error deleting engineer: " + error);
+      } else {
+        alert("Error deleting engineer: " + error);
+      }
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    if (typeof showErrorAlert === "function") {
+      showErrorAlert("Error deleting engineer");
+    } else {
+      alert("Error deleting engineer");
+    }
+  }
+};
+
+window.deleteItem = async function (itemId, itemType) {
+  try {
+    console.log("Deleting item:", itemId, itemType);
+
+    // Determine the correct endpoint based on item type
+    let endpoint = "";
+    switch (itemType.toLowerCase()) {
+      case "engineer":
+        endpoint = `/AdminDashboard/engineers/${itemId}`;
+        break;
+      case "package":
+        endpoint = `/packages/${itemId}`;
+        break;
+      case "project":
+        endpoint = `/projects/${itemId}`;
+        break;
+      default:
+        endpoint = `/admin/delete/${itemId}`;
+    }
+
+    const response = await fetch(endpoint, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      if (typeof showSuccessAlert === "function") {
+        showSuccessAlert(`${itemType} deleted successfully`, () => {
+          location.reload();
+        });
+      } else {
+        alert(`${itemType} deleted successfully`);
+        location.reload();
+      }
+    } else {
+      const error = await response.text();
+      if (typeof showErrorAlert === "function") {
+        showErrorAlert(`Error deleting ${itemType}: ` + error);
+      } else {
+        alert(`Error deleting ${itemType}: ` + error);
+      }
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    if (typeof showErrorAlert === "function") {
+      showErrorAlert(`Error deleting ${itemType}`);
+    } else {
+      alert(`Error deleting ${itemType}`);
+    }
+  }
+};
+
+// Global logout function
+window.logout = function () {
+  if (confirm("Are you sure you want to logout?")) {
+    fetch("/logout", { method: "POST" })
+      .then(() => (window.location.href = "/"))
+      .catch((err) => console.error("Logout error:", err));
+  }
+};
 
 // Initialize AOS only if it exists
 if (typeof AOS !== "undefined") {

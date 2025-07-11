@@ -249,6 +249,7 @@ app.use(
         "https://cdn.datatables.net",
         "https://cdn.jsdelivr.net/npm/sweetalert2@11",
       ],
+      scriptSrcAttr: ["'unsafe-inline'", "'unsafe-hashes'"], // السماح بـ inline event handlers وhashes
     },
   })
 );
