@@ -280,3 +280,94 @@ document.addEventListener("DOMContentLoaded", function () {
       container.appendChild(div);
     });
 });
+
+// Initialize booking buttons for packages
+function initializeBookingButtons() {
+  console.log("Initializing booking buttons...");
+
+  // Handle all booking buttons
+  document
+    .querySelectorAll(
+      '.book-package-btn, .btn-book-package, [data-action="book-package"]'
+    )
+    .forEach((btn) => {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        const packageId =
+          this.dataset.packageId || this.getAttribute("data-package-id");
+        const eventType =
+          this.dataset.eventType || this.getAttribute("data-event-type") || "";
+
+        console.log("Booking button clicked:", { packageId, eventType });
+
+        if (!packageId) {
+          console.error("No package ID found");
+          if (typeof showErrorAlert === "function") {
+            showErrorAlert("Package information not found");
+          } else {
+            alert("Package information not found");
+          }
+          return;
+        }
+
+        // Redirect to booking page with package info
+        const bookingUrl = `/booking?packageId=${packageId}&eventType=${encodeURIComponent(
+          eventType
+        )}`;
+        console.log("Redirecting to:", bookingUrl);
+        window.location.href = bookingUrl;
+      });
+    });
+
+  // Handle generic book now buttons
+  document.querySelectorAll(".book-now, .btn-book-now").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      // Try to find package info from parent elements
+      const packageCard = this.closest(".package-card, .card, .package-item");
+      let packageId = null;
+      let eventType = "";
+
+      if (packageCard) {
+        packageId =
+          packageCard.dataset.packageId ||
+          packageCard.getAttribute("data-package-id");
+        eventType =
+          packageCard.dataset.eventType ||
+          packageCard.getAttribute("data-event-type") ||
+          "";
+      }
+
+      if (!packageId) {
+        // Try to get from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        eventType = urlParams.get("occasion") || "";
+      }
+
+      if (packageId) {
+        const bookingUrl = `/booking?packageId=${packageId}&eventType=${encodeURIComponent(
+          eventType
+        )}`;
+        window.location.href = bookingUrl;
+      } else {
+        // Redirect to general booking page
+        const bookingUrl = eventType
+          ? `/booking?eventType=${encodeURIComponent(eventType)}`
+          : "/booking";
+        window.location.href = bookingUrl;
+      }
+    });
+  });
+
+  console.log("Booking buttons initialized");
+}
+
+// Initialize package functionality when DOM is loaded
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("Package.js loaded");
+
+  // Initialize booking buttons
+  initializeBookingButtons();
+});
