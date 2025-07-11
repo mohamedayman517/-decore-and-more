@@ -37,27 +37,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // السماح بالطلبات من origins المحددة أو بدون origin (زي Postman أو سيرفر داخلي)
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      // التحقق من النطاقات المسموحة
-      const isAllowed = allowedOrigins.some((allowedOrigin) => {
-        if (allowedOrigin === origin) return true;
-        // السماح بجميع النطاقات الفرعية لـ Railway
-        if (origin.endsWith(".up.railway.app")) return true;
-        return false;
-      });
-
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        console.log(`CORS blocked origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: true, // السماح لجميع الـ origins مثل localhost
     credentials: true,
   })
 );
@@ -85,12 +65,11 @@ app.use(
       autoRemove: "native",
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production", // آمن في الإنتاج
-      sameSite: "Lax", // Lax للتوافق الأفضل
-      maxAge: 60 * 60 * 24 * 1000, // 24 hours in milliseconds
-      httpOnly: true, // آمن - منع الوصول من JavaScript
-      path: "/", // تحديد المسار بوضوح
-      // عدم تحديد domain للسماح للكوكيز بالعمل على جميع النطاقات الفرعية
+      secure: false, // إعادة إعدادات localhost
+      sameSite: "Lax",
+      maxAge: 60 * 60 * 24 * 1000, // 24 hours
+      httpOnly: false, // نفس localhost
+      path: "/",
       domain: undefined,
     },
     rolling: true, // Reset expiration on every response
