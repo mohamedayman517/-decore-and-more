@@ -5,11 +5,15 @@
   "scripts": {
     "start": "node app.js",
     "watch": "nodemon --ext js,ejs",
-    "dev": "cross-env NODE_ENV=development nodemon app.js",
-    "build": "npm install",
-    "postinstall": "npm run build"
+    "dev": "cross-env NODE_ENV=development nodemon app.js"
   },
-  "keywords": ["interior design", "booking", "designers", "decor", "architecture"],
+  "keywords": [
+    "interior design",
+    "booking",
+    "designers",
+    "decor",
+    "architecture"
+  ],
   "author": "",
   "license": "ISC",
   "description": "A web application connecting interior designers with clients for booking services and managing projects",
