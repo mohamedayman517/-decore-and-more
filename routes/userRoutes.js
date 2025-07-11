@@ -337,9 +337,8 @@ router.post("/login", async (req, res) => {
     } else if (userType === "client") {
       req.session.user = {
         id: activeUser._id,
-        _id: activeUser._id, // إضافة _id للتوافق
         email: activeUser.email,
-        role: activeUser.role || "client", // تأكد من وجود role
+        role: activeUser.role,
         name: activeUser.name,
       };
     }
@@ -357,7 +356,7 @@ router.post("/login", async (req, res) => {
         redirectPath = "/";
       }
     } else if (userType === "client") {
-      redirectPath = `/userProfile/${activeUser._id}`; // Clients go to their profile
+      redirectPath = "/"; // Clients go to home page
     } else {
       redirectPath = "/";
     }

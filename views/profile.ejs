@@ -194,9 +194,25 @@
                   <span><%= user.name %></span>
                 </a>
                 <div class="dropdown-menu">
-                  <a href="/userProfile/<%= user.id %>" class="nav-link">
-                    <i class="fas fa-user me-2"></i>Profile
+                  <% if (user.role === 'Engineer') { %>
+                  <a href="/profile/<%= user.id %>" class="nav-link">
+                    <i class="fas fa-user me-2"></i>Engineer Profile
                   </a>
+                  <% } else if (user.role === 'Admin') { %>
+                  <a href="/AdminDashboard" class="nav-link">
+                    <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                  </a>
+                  <% } else { %>
+                  <a href="/userProfile/<%= user.id %>" class="nav-link">
+                    <i class="fas fa-user me-2"></i>My Profile
+                  </a>
+                  <a href="/booking" class="nav-link">
+                    <i class="fas fa-calendar me-2"></i>My Bookings
+                  </a>
+                  <a href="/designers" class="nav-link">
+                    <i class="fas fa-users me-2"></i>Browse Designers
+                  </a>
+                  <% } %>
                   <a href="#" class="nav-link" onclick="logout()">
                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                   </a>
@@ -208,25 +224,12 @@
             <li><a href="/contact" class="nav-link">Contact</a></li>
 
             <% } else if(user && user.role === 'Engineer') { %>
-
-            <li>
-              <button class="btn" onclick="logout()">Logout</button>
-            </li>
+            <!-- Engineer navigation is now handled above in the unified dropdown -->
             <li>
               <button onclick="toggleDarkMode()" class="dark-mode">
                 <i class="fa-solid fa-moon"></i>
               </button>
             </li>
-            <!-- <li class="notification-icon">
-              <button class="btn position-relative" id="notificationBtn">
-                <i class="fas fa-bell"></i>
-                <span
-                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-count"
-                  id="notificationCount">
-                  0
-                </span>
-              </button>
-            </li> -->
 
             <% } else { %>
 
@@ -262,12 +265,16 @@
               </div>
             </li>
 
+            <% } %>
+
+            <!-- Dark Mode button for all users -->
             <li>
-              <button onclick="toggleDarkMode()" class="dark-mode">
-                <i class="fa-solid fa-moon"></i>
+              <button onclick="toggleDarkMode()" class="dark-mode"
+                aria-label="Toggle dark mode">
+                <i class="fa-solid fa-moon" aria-hidden="true"
+                  title="Toggle to dark mode"></i>
               </button>
             </li>
-            <% } %>
 
           </ul>
         </div>
