@@ -29,12 +29,25 @@ const httpServer = http.createServer(app);
 // Basic middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://decore-and-more-production.up.railway.app"
+];
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: function (origin, callback) {
+      // السماح بالطلبات من origins المحددة أو بدون origin (زي Postman أو سيرفر داخلي)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
+
 
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -60,6 +73,7 @@ app.use(
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
+       sameSite: "None",
       maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
       httpOnly: true,
     },
