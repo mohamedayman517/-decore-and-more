@@ -208,38 +208,25 @@ router.post("/login", async (req, res) => {
       role: user.role,
     };
 
-    // حفظ الجلسة بشكل صريح
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.status(500).json({ message: "Error saving session" });
-      }
+    // Set redirectPath based on user role
+    let redirectPath = "/";
+    if (user.role === "Engineer") {
+      redirectPath = `/profile/${user._id}`;
+    } else if (user.role === "Admin") {
+      redirectPath = "/AdminDashboard";
+    } else if (user.role === "user") {
+      redirectPath = "/"; // Regular users go to home page
+    }
 
-      console.log(
-        `✅ Session saved for user: ${user.email}, Role: ${user.role}, SessionID: ${req.sessionID}`
-      );
-
-      // Set redirectPath based on user role
-      let redirectPath = "/";
-      if (user.role === "Engineer") {
-        redirectPath = `/profile/${user._id}`;
-      } else if (user.role === "Admin") {
-        redirectPath = "/AdminDashboard";
-      } else if (user.role === "user") {
-        redirectPath = "/"; // Regular users go to home page
-      }
-
-      res.json({
-        success: true,
-        message: "Login successful",
-        redirectPath: redirectPath,
-        user: {
-          id: user._id,
-          email: user.email,
-          role: user.role,
-        },
-        sessionId: req.sessionID, // للتشخيص
-      });
+    res.json({
+      success: true,
+      message: "Login successful",
+      redirectPath: redirectPath,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Login error:", error);

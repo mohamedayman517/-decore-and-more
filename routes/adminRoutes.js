@@ -8,23 +8,9 @@ const Booking = require("../models/userSchema");
 // Admin Dashboard
 router.get("/AdminDashboard", async (req, res) => {
   try {
-    console.log(`🔍 AdminDashboard Access Attempt:`);
-    console.log(`   SessionID: ${req.sessionID}`);
-    console.log(`   Session User: ${JSON.stringify(req.session.user)}`);
-    console.log(`   Session: ${JSON.stringify(req.session)}`);
-    console.log(`   Cookies: ${req.headers.cookie}`);
-
-    if (!req.session.user) {
-      console.log("❌ No session user found");
-      return res.status(403).send("Access denied. Please login first.");
-    }
-
-    if (req.session.user.role !== "Admin") {
-      console.log(`❌ User role is ${req.session.user.role}, not Admin`);
+    if (!req.session.user || req.session.user.role !== "Admin") {
       return res.status(403).send("Access denied. Admins only.");
     }
-
-    console.log("✅ Admin access granted");
     const engineers = await User.find({ role: "Engineer" }).lean();
 
     let allBookings = [];
