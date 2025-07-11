@@ -85,10 +85,11 @@ app.use(
       autoRemove: "native",
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production", // true في بيئة الإنتاج لأن Railway يستخدم HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "Lax" : "Lax", // تغيير من None إلى Lax لتجنب مشاكل الكوكيز
+      secure: false, // تعطيل مؤقت لاختبار الكوكيز
+      sameSite: "Lax", // Lax للتوافق الأفضل
       maxAge: 60 * 60 * 24 * 1000, // 24 hours in milliseconds
-      httpOnly: true,
+      httpOnly: false, // تعطيل مؤقت للاختبار
+      path: "/", // تحديد المسار بوضوح
       // عدم تحديد domain للسماح للكوكيز بالعمل على جميع النطاقات الفرعية
       domain: undefined,
     },
@@ -99,6 +100,44 @@ app.use(
 // Make session available to all routes
 app.use((req, res, next) => {
   res.locals.session = req.session;
+
+  // إضافة headers للتأكد من عمل الكوكيز
+  if (process.env.NODE_ENV === "production") {
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+  }
+
+  // فرض إنشاء جلسة جديدة إذا لم تكن موجودة
+  if (!req.session.initialized) {
+    req.session.initialized = true;
+    req.session.save();
+  }
+
+  // تسجيل معلومات الجلسة للتشخيص
+  if (req.path.includes("AdminDashboard") || req.path.includes("login")) {
+    console.log(`🔍 Session Debug - Path: ${req.path}`);
+    console.log(`🔍 Session ID: ${req.sessionID}`);
+    console.log(
+      `🔍 Session User: ${
+        req.session.user ? JSON.stringify(req.session.user) : "No user"
+      }`
+    );
+    console.log(`🔍 Cookies: ${JSON.stringify(req.headers.cookie)}`);
+    console.log(`🔍 Set-Cookie Header: ${res.getHeaders()["set-cookie"]}`);
+    console.log(
+      `🔍 User-Agent: ${req.headers["user-agent"]?.substring(0, 50)}...`
+    );
+
+    // فرض إرسال كوكي الجلسة
+    res.cookie("connect.sid", req.sessionID, {
+      maxAge: 60 * 60 * 24 * 1000,
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax",
+      path: "/",
+    });
+  }
+
   next();
 });
 
