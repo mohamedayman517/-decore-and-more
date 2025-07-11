@@ -63,8 +63,34 @@ app.use(
 );
 
 app.use(methodOverride("_method"));
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/user", express.static(path.join(__dirname, "user")));
+
+// إعداد الملفات الثابتة مع headers صحيحة
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    setHeaders: (res, path) => {
+      if (path.endsWith(".css")) {
+        res.setHeader("Content-Type", "text/css");
+      }
+      if (path.endsWith(".js")) {
+        res.setHeader("Content-Type", "application/javascript");
+      }
+      // إضافة cache headers
+      res.setHeader("Cache-Control", "public, max-age=86400"); // 24 hours
+    },
+  })
+);
+
+app.use(
+  "/user",
+  express.static(path.join(__dirname, "user"), {
+    setHeaders: (res, path) => {
+      if (path.endsWith(".js")) {
+        res.setHeader("Content-Type", "application/javascript");
+      }
+    },
+  })
+);
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(favicon(path.join(__dirname, "public", "images", "favicon.ico")));
 
@@ -86,7 +112,7 @@ app.use(
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production", // true في بيئة الإنتاج لأن Railway يستخدم HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "Lax" : "Lax", // تغيير من None إلى Lax لتجنب مشاكل الكوكيز
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // إرجاع None للإنتاج مع secure: true
       maxAge: 60 * 60 * 24 * 1000, // 24 hours in milliseconds
       httpOnly: true,
       // عدم تحديد domain للسماح للكوكيز بالعمل على جميع النطاقات الفرعية
@@ -99,6 +125,25 @@ app.use(
 // Make session available to all routes
 app.use((req, res, next) => {
   res.locals.session = req.session;
+
+  // إضافة headers للتأكد من عمل الكوكيز
+  if (process.env.NODE_ENV === "production") {
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+  }
+
+  // تسجيل معلومات الجلسة للتشخيص
+  if (req.path.includes("AdminDashboard") || req.path.includes("login")) {
+    console.log(`🔍 Session Debug - Path: ${req.path}`);
+    console.log(`🔍 Session ID: ${req.sessionID}`);
+    console.log(
+      `🔍 Session User: ${
+        req.session.user ? JSON.stringify(req.session.user) : "No user"
+      }`
+    );
+    console.log(`🔍 Cookies: ${JSON.stringify(req.headers.cookie)}`);
+  }
+
   next();
 });
 
@@ -183,11 +228,14 @@ app.use(
       imgSrc: [
         "'self'",
         "data:",
+        "blob:",
         "https://cdn.jsdelivr.net",
         "https://cdnjs.cloudflare.com",
         "https://cdn.datatables.net",
         "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-      ],
+        "https://*.up.railway.app",
+        process.env.BASE_URL,
+      ].filter(Boolean),
       connectSrc: [
         "'self'",
         "https://cdn.jsdelivr.net",
@@ -308,6 +356,17 @@ app.get("/verify", (req, res) => {
     error: null,
     showForm: false,
     engineerId: null,
+  });
+});
+
+// Route للتشخيص - يمكن حذفه بعد حل المشكلة
+app.get("/debug-session", (req, res) => {
+  res.json({
+    sessionID: req.sessionID,
+    session: req.session,
+    cookies: req.headers.cookie,
+    user: req.session.user,
+    timestamp: new Date().toISOString(),
   });
 });
 
