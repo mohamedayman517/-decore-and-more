@@ -5,8 +5,9 @@
   "scripts": {
     "start": "node app.js",
     "watch": "nodemon --ext js,ejs",
-    "dev": "NODE_ENV=development nodemon app.js",
-    "build": "echo \"No build step required for Node.js application\""
+    "dev": "cross-env NODE_ENV=development nodemon app.js",
+    "build": "npm install",
+    "postinstall": "npm run build"
   },
   "keywords": ["interior design", "booking", "designers", "decor", "architecture"],
   "author": "",
@@ -61,6 +62,7 @@
     "stripe": "^17.7.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "ejs-lint": "^2.0.1",
     "nodemon": "^3.1.9",
     "webpack": "^5.97.1",

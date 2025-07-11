@@ -32,7 +32,9 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   process.env.NODE_ENV === "development" ? "http://localhost:3000" : null,
   "https://decore-and-more-production.up.railway.app",
-  process.env.BASE_URL
+  process.env.BASE_URL,
+  // إضافة النطاق الفرعي لـ Railway
+  ".up.railway.app"
 ].filter(Boolean);
 
 app.use(
@@ -77,7 +79,9 @@ app.use(
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // مهم جدًا للـ cross-site requests
       maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
       httpOnly: true,
-      domain: process.env.NODE_ENV === "production" ? ".up.railway.app" : undefined, // تحديد النطاق في بيئة الإنتاج
+      // استخدام النطاق من BASE_URL إذا كان موجودًا، وإلا استخدام النطاق الافتراضي لـ Railway
+      domain: process.env.NODE_ENV === "production" ? 
+        (new URL(process.env.BASE_URL || "https://decore-and-more-production.up.railway.app")).hostname : undefined,
     },
     rolling: true, // Reset expiration on every response
   })
@@ -132,22 +136,21 @@ app.use((req, res, next) => {
 });
 
 // Security middleware
-if (process.env.NODE_ENV === "development") {
-  app.use(
-    helmet.contentSecurityPolicy({
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "'unsafe-eval'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://code.jquery.com",
-          "https://cdn.datatables.net",
-          "https://cdn.jsdelivr.net/npm/sweetalert2@11",
-          ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
-        ],
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "'unsafe-eval'",
+        "https://cdn.jsdelivr.net",
+        "https://cdnjs.cloudflare.com",
+        "https://code.jquery.com",
+        "https://cdn.datatables.net",
+        "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+        ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
+      ],
         styleSrc: [
           "'self'",
           "'unsafe-inline'",
@@ -180,6 +183,8 @@ if (process.env.NODE_ENV === "development") {
           "https://cdnjs.cloudflare.com",
           "https://cdn.datatables.net",
           "https://cdn.jsdelivr.net/npm/sweetalert2@11",
+          "https://*.up.railway.app",
+          process.env.BASE_URL,
           ...(process.env.NODE_ENV === "development" ? ["http://localhost:35729"] : []),
         ],
         fontSrc: [
@@ -202,7 +207,7 @@ if (process.env.NODE_ENV === "development") {
       },
     })
   );
-}
+
 
 // Live reload setup
 if (process.env.NODE_ENV === "development") {
@@ -298,13 +303,14 @@ app.get("/verify", (req, res) => {
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    httpServer.listen(port, () =>
+    httpServer.listen(port, () => {
+      const baseUrl = process.env.BASE_URL || `https://decore-and-more-production.up.railway.app`;
       console.log(
         process.env.NODE_ENV === "development"
           ? `🚀 Server running on http://localhost:${port}`
-          : `🚀 Server running on ${process.env.BASE_URL}`
-      )
-    );
+          : `🚀 Server running on ${baseUrl}`
+      );
+    });
   })
   .catch((err) => {
     console.error("❌ Failed to connect to MongoDB:", err);
